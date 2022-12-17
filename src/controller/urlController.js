@@ -43,24 +43,18 @@ exports.urlShorter = async (req, res) => {
         }
 
         let urlValidate = await axios(option)
-            .then(() => longUrl) // axios is 
+            .then(() => longUrl) 
             .catch(() => null)
 
         if (!urlValidate) { return res.status(400).send({ status: false, message: `This Link: ${longUrl} is not valid URL` }) }
 
-        let isPresent = await model.findOne({ longUrl: longUrl })
+        let isPresent = await model.findOne({ longUrl: longUrl }).select({longUrl:1,shortUrl:1,urlCode:1,_id:0})
 
         if (isPresent) {
 
             await SET_ASYNC(`${longUrl}`, 24 * 60 * 60, JSON.stringify(isPresent))
 
-            let isPresentObj = {
-                longUrl: isPresent.longUrl,
-                shortUrl: isPresent.shortUrl,
-                urlCode: isPresent.urlCode
-            }
-
-            return res.status(200).send({ status: true, message: `For this LongUrl use this ShortUrl: ${isPresent.shortUrl}`, data: isPresentObj })
+            return res.status(200).send({ status: true, message: `For this LongUrl use this ShortUrl: ${isPresent.shortUrl}`, data: isPresent })
         }
 
 
@@ -77,6 +71,7 @@ exports.urlShorter = async (req, res) => {
         return res.status(500).send({ status: 'error', error: error.message })
     }
 }
+
 
 
 
@@ -111,6 +106,3 @@ exports.getUrl = async function (req, res) {
 
     }
 }
-
-
-
